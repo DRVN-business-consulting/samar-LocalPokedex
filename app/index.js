@@ -72,10 +72,10 @@ export default function App() {
   return (
     <View style={[styles.container, { backgroundColor: bg }]}>
       <StatusBar style="auto" />
-      <Text style={[styles.text, { color: fc }]}>Login</Text>
+      <Text style={[styles.text, { color: "black" }]}>Login</Text>
       <TextInput
         placeholder="Password"
-        style={[styles.input, { color: fc }]}
+        style={[styles.input, { color: "black" }]}
         value={password}
         onChangeText={(text) => setPassword(text)}
         secureTextEntry
@@ -83,7 +83,7 @@ export default function App() {
       <Text
         style={[
           styles.label,
-          { left: 0, marginRight: 70, marginLeft: 70, color: fc },
+          { left: 0, marginRight: 70, marginLeft: 70, color: "black" },
         ]}
       >
         {passwordStatus}

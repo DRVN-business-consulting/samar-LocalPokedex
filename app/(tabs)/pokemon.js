@@ -34,8 +34,24 @@ const SavePokemons = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [newPokemonName, setNewPokemonName] = useState("");
-  const [newPokemonTypes, setNewPokemonTypes] = useState("");
+  const [availableTypes, setAvailableTypes] = useState([]);
+  const [selectedTypes, setSelectedTypes] = useState([]);
   const navigation = useNavigation();
+
+  const loadAvailableTypes = async () => {
+    try {
+      const types = await AsyncStorage.getItem("pokemonTypes");
+      if (types !== null) {
+        setAvailableTypes(JSON.parse(types));
+      } else {
+        // Default types if none are found in AsyncStorage
+        const defaultTypes = ["Grass", "Fire", "Water", "Electric", "Flying"];
+        setAvailableTypes(defaultTypes);
+      }
+    } catch (error) {
+      console.error("Error loading types:", error);
+    }
+  };
 
   const fetchAndSavePokemons = async () => {
     try {
@@ -130,7 +146,7 @@ const SavePokemons = () => {
   };
 
   const createPokemon = async () => {
-    if (!newPokemonName.trim() || !newPokemonTypes.trim()) {
+    if (!newPokemonName.trim() || selectedTypes.length === 0) {
       Alert.alert("Error", "Invalid input");
       return;
     }
@@ -145,7 +161,7 @@ const SavePokemons = () => {
       const newPokemon = {
         id: newId,
         name: { english: newPokemonName },
-        type: newPokemonTypes.split(",").map((type) => type.trim()),
+        type: selectedTypes,
         image: "https://via.placeholder.com/100",
       };
 
@@ -158,7 +174,7 @@ const SavePokemons = () => {
       setFilteredPokemons(updatedPokemons);
       setCreateModalVisible(false);
       setNewPokemonName("");
-      setNewPokemonTypes("");
+      setSelectedTypes([]);
       Alert.alert("Success", "New Pokémon created successfully!");
     } catch (error) {
       console.error("Error creating Pokémon:", error);
@@ -181,6 +197,7 @@ const SavePokemons = () => {
 
   useEffect(() => {
     loadSavedPokemons();
+    loadAvailableTypes(); // Load types on component mount
   }, []);
 
   const handlePress = (item) => {
@@ -318,19 +335,40 @@ const SavePokemons = () => {
               onChangeText={setNewPokemonName}
               placeholder="Enter Pokémon name"
             />
-            <TextInput
-              style={styles.modalInput}
-              value={newPokemonTypes}
-              onChangeText={setNewPokemonTypes}
-              placeholder="Enter Pokémon types (comma separated)"
-            />
+            <View style={styles.typesContainer}>
+              {availableTypes.map((type) => (
+                <TouchableOpacity
+                  key={type}
+                  style={[
+                    styles.typeButton,
+                    selectedTypes.includes(type) && styles.selectedTypeButton,
+                  ]}
+                  onPress={() => {
+                    setSelectedTypes((prev) =>
+                      prev.includes(type)
+                        ? prev.filter((t) => t !== type)
+                        : [...prev, type]
+                    );
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.typeButtonText,
+                      selectedTypes.includes(type) && styles.selectedTypeButtonText,
+                    ]}
+                  >
+                    {type}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
             <Button title="Create" onPress={createPokemon} color="#32CD32" />
             <Button
               title="Cancel"
               onPress={() => {
                 setCreateModalVisible(false);
                 setNewPokemonName("");
-                setNewPokemonTypes("");
+                setSelectedTypes([]);
               }}
               color="#FF6347"
             />
@@ -445,6 +483,28 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     fontSize: 16,
     padding: 5,
+  },
+  typesContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginBottom: 20,
+  },
+  typeButton: {
+    padding: 10,
+    margin: 5,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    backgroundColor: "#ffffff",
+  },
+  selectedTypeButton: {
+    backgroundColor: "#1E90FF",
+  },
+  typeButtonText: {
+    color: "#333",
+  },
+  selectedTypeButtonText: {
+    color: "#fff",
   },
 });
 
